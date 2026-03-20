@@ -12,7 +12,7 @@
     <p class="subtitle">Basic frontend for your Express + MongoDB API</p>
 
     <section class="card">
-      <h2>Add Product</h2>
+      <h2 id="formTitle">Add Product</h2>
       <form id="productForm" class="form-grid">
         <label>
           Name
@@ -30,7 +30,8 @@
           Image URL (optional)
           <input id="image" type="url" placeholder="https://example.com/image.jpg" />
         </label>
-        <button type="submit">Add Product</button>
+        <button id="submitBtn" type="submit">Add Product</button>
+        <button id="cancelEditBtn" class="secondary-btn hidden" type="button">Cancel Edit</button>
       </form>
       <p id="status" class="status"></p>
     </section>

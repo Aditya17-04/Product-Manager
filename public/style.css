@@ -65,6 +65,18 @@ button:hover {
   background: #1d4ed8;
 }
 
+.secondary-btn {
+  background: #4b5563;
+}
+
+.secondary-btn:hover {
+  background: #374151;
+}
+
+.hidden {
+  display: none;
+}
+
 .status {
   margin-top: 0.6rem;
   min-height: 1.2rem;
@@ -90,6 +102,24 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn {
+  background: #0f766e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #0d5e58;
 }
 
 .product-image {
@@ -138,6 +168,10 @@ button:hover {
   }
 
   .product-main {
+    width: 100%;
+  }
+
+  .product-actions {
     width: 100%;
   }
 }

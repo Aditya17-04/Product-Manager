@@ -1,6 +1,12 @@
 const form = document.getElementById('productForm');
 const productsContainer = document.getElementById('products');
 const statusEl = document.getElementById('status');
+const formTitle = document.getElementById('formTitle');
+const submitBtn = document.getElementById('submitBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+let editingProductId = null;
+let productsById = new Map();
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -21,6 +27,28 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function resetForm() {
+  editingProductId = null;
+  form.reset();
+  document.getElementById('quantity').value = 0;
+  document.getElementById('price').value = 0;
+  formTitle.textContent = 'Add Product';
+  submitBtn.textContent = 'Add Product';
+  cancelEditBtn.classList.add('hidden');
+}
+
+function beginEdit(product) {
+  editingProductId = product._id;
+  document.getElementById('name').value = product.name || '';
+  document.getElementById('quantity').value = Number.isFinite(product.quantity) ? product.quantity : 0;
+  document.getElementById('price').value = Number.isFinite(product.price) ? product.price : 0;
+  document.getElementById('image').value = typeof product.image === 'string' ? product.image : '';
+  formTitle.textContent = 'Update Product';
+  submitBtn.textContent = 'Update Product';
+  cancelEditBtn.classList.remove('hidden');
+  setStatus('Editing product. Update fields and submit.');
 }
 
 function renderProducts(products) {
@@ -49,7 +77,10 @@ function renderProducts(products) {
               <p class="product-meta">Price: ${formatCurrency(price)}</p>
             </div>
           </div>
-          <button class="delete-btn" data-id="${product._id}">Delete</button>
+          <div class="product-actions">
+            <button class="edit-btn" data-id="${product._id}" type="button">Edit</button>
+            <button class="delete-btn" data-id="${product._id}" type="button">Delete</button>
+          </div>
         </article>
       `;
     })
@@ -63,6 +94,7 @@ async function loadProducts() {
       throw new Error('Could not load products');
     }
     const products = await response.json();
+    productsById = new Map(products.map((product) => [product._id, product]));
     renderProducts(products);
   } catch (error) {
     productsContainer.innerHTML = '<p class="empty">Failed to load products.</p>';
@@ -72,7 +104,8 @@ async function loadProducts() {
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  setStatus('Saving product...');
+  const isEditing = Boolean(editingProductId);
+  setStatus(isEditing ? 'Updating product...' : 'Saving product...');
 
   const payload = {
     name: document.getElementById('name').value.trim(),
@@ -82,8 +115,8 @@ form.addEventListener('submit', async (event) => {
   };
 
   try {
-    const response = await fetch('/api/products', {
-      method: 'POST',
+    const response = await fetch(isEditing ? `/api/product/${editingProductId}` : '/api/products', {
+      method: isEditing ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -91,44 +124,62 @@ form.addEventListener('submit', async (event) => {
     });
 
     if (!response.ok) {
-      throw new Error('Could not save product');
+      throw new Error(isEditing ? 'Could not update product' : 'Could not save product');
     }
 
-    form.reset();
-    document.getElementById('quantity').value = 0;
-    document.getElementById('price').value = 0;
-    setStatus('Product added successfully.');
+    setStatus(isEditing ? 'Product updated successfully.' : 'Product added successfully.');
+    resetForm();
     loadProducts();
   } catch (error) {
     setStatus(error.message, true);
   }
+});
+
+cancelEditBtn.addEventListener('click', () => {
+  resetForm();
+  setStatus('Edit cancelled.');
 });
 
 productsContainer.addEventListener('click', async (event) => {
-  const button = event.target.closest('.delete-btn');
-  if (!button) {
+  const editBtn = event.target.closest('.edit-btn');
+  if (editBtn) {
+    const id = editBtn.getAttribute('data-id');
+    const product = id ? productsById.get(id) : null;
+    if (!product) {
+      setStatus('Could not find product to edit.', true);
+      return;
+    }
+    beginEdit(product);
     return;
   }
 
-  const id = button.getAttribute('data-id');
-  if (!id) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/product/${id}`, {
-      method: 'DELETE'
-    });
-
-    if (!response.ok) {
-      throw new Error('Could not delete product');
+  const deleteBtn = event.target.closest('.delete-btn');
+  if (deleteBtn) {
+    const id = deleteBtn.getAttribute('data-id');
+    if (!id) {
+      return;
     }
 
-    setStatus('Product deleted.');
-    loadProducts();
-  } catch (error) {
-    setStatus(error.message, true);
+    try {
+      const response = await fetch(`/api/product/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Could not delete product');
+      }
+
+      if (editingProductId === id) {
+        resetForm();
+      }
+
+      setStatus('Product deleted.');
+      loadProducts();
+    } catch (error) {
+      setStatus(error.message, true);
+    }
   }
 });
 
+resetForm();
 loadProducts();
