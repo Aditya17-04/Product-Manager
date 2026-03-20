@@ -6,7 +6,8 @@ A simple full-stack CRUD app using Express and MongoDB to manage products.
 
 - Product CRUD API with Express and Mongoose
 - Basic frontend served from `public`
-- Add and delete products from the browser
+- Add, update, and delete products from the browser
+- Edit mode with pre-filled form and cancel option
 - Optional product image display (shown only when image URL is provided)
 - Price display in Indian Rupees (`INR`)
 
@@ -55,6 +56,17 @@ npm run dev
 
 - Frontend: `http://localhost:3000/`
 - API base: `http://localhost:3000/api`
+
+## Frontend Usage
+
+1. Add Product:
+  - Fill the form and click `Add Product`.
+2. Update Product:
+  - Click `Edit` on a product card.
+  - Update form fields and click `Update Product`.
+  - Use `Cancel Edit` to return to add mode.
+3. Delete Product:
+  - Click `Delete` on a product card.
 
 ## API Endpoints
 
